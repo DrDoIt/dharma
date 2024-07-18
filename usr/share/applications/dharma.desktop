@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Dharma
+Path=/usr/bin
+Exec=dharma
+Icon=/usr/share/appdata/Dharma/dharma.png
+Terminal=false
+Categories=Games;
+Name[en_US]=Dharma

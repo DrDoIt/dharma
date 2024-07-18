@@ -1,0 +1,5 @@
+Package: Dharma
+Version: 0.0.4
+Architecture: all
+Maintainer: Brian DeWitt <dewittgeology@gmail.com>
+Description: An app to give you the Dharma

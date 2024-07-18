@@ -1,0 +1,128 @@
+#!/usr/bin/python3
+
+import gi
+import sqlite3
+import random
+import pkg_resources
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk, Gdk
+
+# Find the db file
+def find_db_file():
+    return pkg_resources.resource_filename(__name__, 'bud_lit.db')
+
+# Capitalize the first letter only
+def cap_letter(phrase):
+    return phrase[:1].upper() + phrase[1:]
+
+# Retrieve image
+img = Gtk.Image.new_from_file('/usr/share/appdata/Dharma/temple.png')
+
+# Set up SQL
+db_file = find_db_file()
+con = sqlite3.connect(db_file)
+cur = con.cursor()
+ver = cur.execute("SELECT verse FROM sayings")
+verse_vals = ver.fetchall()
+#cur.execute("CREATE TABLE IF NOT EXISTS sayings(no INTEGER, verse TEXT)")
+
+# To find the first verse containing a specific word
+def find_verse_with_word(db_file, word):
+    query = "SELECT verse FROM sayings WHERE verse LIKE ? ORDER BY RANDOM() LIMIT 1"
+    randomize = "SELECT verse FROM sayings ORDER BY RANDOM() LIMIT 1"
+    cur.execute(query, (f'%{word}%',))
+    result = cur.fetchone()
+    if result:
+        dharma = result[0]
+        return cap_letter(dharma)
+    else:
+        cur.execute(randomize)
+        result = cur.fetchone()
+        fated_dharma = result[0]
+        return cap_letter(fated_dharma)
+    
+
+
+
+def get_random_verse(results):
+    if results:
+        return random.choice(results)[0]
+    else:
+        return "Try Again"
+
+def btn_clicked(widget):
+    global text_display, text_verse
+    user_input = text_input.get_text()
+    word_to_find = user_input.lower()
+    result = find_verse_with_word(db_file, word_to_find)
+
+    if result:
+        text_verse.set_text(result)
+    else:
+        random_verse = get_random_verse(result)
+        if random_verse:
+            text_verse.set_text(random_verse)
+        else:
+            text_verse.set_text("No verses available")
+    main_window.resize(200,220)
+            
+
+# Main window and grid
+main_window = Gtk.Window(title="Dharma")
+main_window.set_default_size(200,220)
+main_window.set_border_width(40)
+
+
+# Contents  
+text_display = Gtk.Label(label="Give me a word")
+text_display.set_line_wrap(True)
+btn = Gtk.Button(label="Send")
+btn.connect("clicked",btn_clicked)
+text_input = Gtk.Entry()
+text_input.connect("activate", btn_clicked)
+text_verse = Gtk.Label(label="")
+text_verse.set_line_wrap(True)
+
+
+# Main window
+main_window.set_name("main-window")
+main_window.connect("destroy", Gtk.main_quit)
+btn.set_name("GtkLabel")
+
+
+# Create a CSS provider and load CSS db_file
+provider = Gtk.CssProvider()
+provider.load_from_data(b'''
+    #main-window {
+        background-color: #ffff99;
+    }
+    #GtkLabel {
+        color: #008600;
+    }
+''')
+
+
+# Get the style context for the main window and apply the CSS provider
+context = main_window.get_style_context()
+context.add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
+
+# Set up grid
+grid = Gtk.Grid()
+grid.set_row_spacing(30)
+grid.set_column_spacing(150)
+main_window.add(grid)
+
+
+# Attach contents to grid
+grid.attach(text_display, 0, 0, 1, 1)
+grid.attach(text_input,0, 1, 1, 1)
+grid.attach(btn, 0, 2, 1, 1)
+grid.attach(text_verse, 0, 3, 1, 1)
+grid.attach(img, 0, 4, 1, 1)
+
+
+# Init loop
+main_window.show_all()
+Gtk.main()
+
