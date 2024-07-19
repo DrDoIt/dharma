@@ -15,6 +15,11 @@ def find_db_file():
 def cap_letter(phrase):
     return phrase[:1].upper() + phrase[1:]
 
+def css_context(item,):
+    
+    item_con = item.get_style_context()
+    item_con.add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
 # Retrieve image
 img = Gtk.Image.new_from_file('/usr/share/appdata/Dharma/temple.png')
 
@@ -65,7 +70,7 @@ def btn_clicked(widget):
         else:
             text_verse.set_text("No verses available")
     main_window.resize(200,220)
-            
+
 
 # Main window and grid
 main_window = Gtk.Window(title="Dharma")
@@ -76,12 +81,14 @@ main_window.set_border_width(40)
 # Contents  
 text_display = Gtk.Label(label="Give me a word")
 text_display.set_line_wrap(True)
+text_display.set_name("text-display")
 btn = Gtk.Button(label="Send")
 btn.connect("clicked",btn_clicked)
 text_input = Gtk.Entry()
 text_input.connect("activate", btn_clicked)
 text_verse = Gtk.Label(label="")
 text_verse.set_line_wrap(True)
+text_verse.set_name("text-verse")
 
 
 # Main window
@@ -96,15 +103,21 @@ provider.load_from_data(b'''
     #main-window {
         background-color: #ffff99;
     }
-    #GtkLabel {
+    #text-display {
+        font-size: 20px;
+        font-weight: bold;
         color: #008600;
+    }
+    #GtkLabel {
+        color: #860000;
     }
 ''')
 
 
 # Get the style context for the main window and apply the CSS provider
-context = main_window.get_style_context()
-context.add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+components = [main_window,text_display,text_verse,btn]
+for component in components:
+    css_context(component)
 
 
 # Set up grid
